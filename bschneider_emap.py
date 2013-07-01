@@ -81,13 +81,8 @@ def visualiza(dicionario, xsize, ysize, titulo):
     ax.set_title(titulo) # impressão do título do gráfico na saída a ser visualizada tendo como entrada o parâmetro 'título' da função
 
     # calculando o valor maximo do dicionário para a normalizacao dos valores
-    m = 0
-    for k, v in dicionario.iteritems():
-        s = len(v)
-        for n in range(s):
-            if v[n] > m:
-                m = v[n]
-                
+    m = max(sum(dicionario.values(), []))
+
     # iterando pelos dicionarios 
     od = collections.OrderedDict(sorted(dicionario.items()))
     num_col = 0
