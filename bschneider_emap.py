@@ -7,10 +7,9 @@ import glob
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-import itertools
-import math
 import collections
 from ignore import lista_ignorar # uma lista de exceções com tokens que não se deseja processar está definida no arquivo ignore.py
+from metrics import simpsons_index, lexical_diversity, hapax_legomena
 
 # Essa função recebe um caminho no disco (local) onde estão armazenados todos os arquivos.. 
 # ..a serem processados e retorna uma lista com o caminho específico de cada um dos arquivos contidos na pasta 
@@ -27,33 +26,6 @@ def caminhotxt(path):
 # aplica uma determinada metrica de diversidade léxica dentre as 3 disponíveis (a partir do parâmetro 'metrica' que deve ser escolhido na chamada da função) e..
 # ..gera como saída um dicionário onde cada chave é o caminho de cada um dos arquivos lidos e os valor associado a essa chave é uma lista..
 #.. de números obtida a partir do processamento dos textos em fragmentos de 'n' tokens (onde 'n' também é parâmetro da função) utilizando a métrica escolhida. Cada elemento numérico da lista correponde à aplicação da métrica sobre os sucessivos fragmentos de tamanho 'n' tokens ao longo de cada txt lido.
-
-def simpsons_index(trecho):
-    words = [w.lower() for w in trecho]
-    n2 = len(words)
-    den = n2 * (n2 - 1)
-    per = itertools.permutations(words, 2)
-    counter = 0
-    for elemento in per:
-        if elemento[0] == elemento[1]:
-            counter += 1
-    simpsonsindex = counter / den
-    inv_simpsonsindex = 1 / simpsonsindex
-    return inv_simpsonsindex
-
-def lexical_diversity(text):
-    words = [w.lower() for w in text]
-    return len(set(words)) / len(words)
-
-def hapax_legomena(text):
-    words = [w.lower() for w in text]
-    N = len(words)
-    V = len(set(words))
-    num = 100 * (math.log(N, 10))
-    t = nltk.FreqDist(words)
-    V1 = len(t.hapaxes())
-    den = 1 - (V1 / V)
-    return num / den
 
 def letxt_aplicametrica(archives_list, n, metrica):
     ignorar = lista_ignorar
