@@ -7,10 +7,9 @@ import glob
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-import itertools
-import math
 import collections
 from ignore import lista_ignorar # uma lista de exceções com tokens que não se deseja processar está definida no arquivo ignore.py
+from metrics import simpsons_index, lexical_diversity, hapax_legomena
 
 # Essa função recebe um caminho no disco (local) onde estão armazenados todos os arquivos.. 
 # ..a serem processados e retorna uma lista com o caminho específico de cada um dos arquivos contidos na pasta 
@@ -27,43 +26,12 @@ def caminhotxt(path):
 # aplica uma determinada metrica de diversidade léxica dentre as 3 disponíveis (a partir do parâmetro 'metrica' que deve ser escolhido na chamada da função) e..
 # ..gera como saída um dicionário onde cada chave é o caminho de cada um dos arquivos lidos e os valor associado a essa chave é uma lista..
 #.. de números obtida a partir do processamento dos textos em fragmentos de 'n' tokens (onde 'n' também é parâmetro da função) utilizando a métrica escolhida. Cada elemento numérico da lista correponde à aplicação da métrica sobre os sucessivos fragmentos de tamanho 'n' tokens ao longo de cada txt lido.
+
 def letxt_aplicametrica(archives_list, n, metrica):
     ignorar = lista_ignorar
     dicionario = {}
     var = n
-    # inicio das funções de métrica
-    if metrica == 'simpsons_index':
-        def m(trecho):
-            words = [w.lower() for w in trecho]
-            n2 = len(words)
-            den = n2 * (n2 - 1)
-            per = itertools.permutations(words, 2)
-            counter = 0
-            for elemento in per:
-                if elemento[0] == elemento[1]:
-                    counter += 1
-            simpsonsindex = counter / den
-            inv_simpsonsindex = 1 / simpsonsindex
-            return inv_simpsonsindex
-        
-    if metrica == 'lexical_diversity':
-        def m(text):
-            words = [w.lower() for w in text]
-            return len(set(words)) / len(words)
-        
-    if metrica == 'hapax_legomena':
-        def m(text):
-            words = [w.lower() for w in text]
-            N = len(words)
-            V = len(set(words))
-            num = 100 * (math.log(N, 10))
-            t = nltk.FreqDist(words)
-            V1 = len(t.hapaxes())
-            den = 1 - (V1 / V)
-            return num / den
-            
-    #fim das funções de métrica
-    
+
     for x in range(len(archives_list)):
         f = open(archives_list[x])
         raw = f.read()
@@ -86,15 +54,13 @@ def letxt_aplicametrica(archives_list, n, metrica):
         
         while n <= tam:
             fragmento = lista[a:n]
-            metrica = m(fragmento)
-            lista2.append(metrica)
+            lista2.append(metrica(fragmento))
             a = a + c
             n = n + c
         n = var
         final = lista[a:]
         
-        metrica2 = m(final)
-        lista2.append(metrica2)
+        lista2.append(metrica(final))
         
         dicionario[archives_list[x]] = lista2
     return dicionario
@@ -115,13 +81,8 @@ def visualiza(dicionario, xsize, ysize, titulo):
     ax.set_title(titulo) # impressão do título do gráfico na saída a ser visualizada tendo como entrada o parâmetro 'título' da função
 
     # calculando o valor maximo do dicionário para a normalizacao dos valores
-    m = 0
-    for k, v in dicionario.iteritems():
-        s = len(v)
-        for n in range(s):
-            if v[n] > m:
-                m = v[n]
-                
+    m = max(sum(dicionario.values(), []))
+
     # iterando pelos dicionarios 
     od = collections.OrderedDict(sorted(dicionario.items()))
     num_col = 0
@@ -186,5 +147,5 @@ def visualiza(dicionario, xsize, ysize, titulo):
 
 #testando
 teste = caminhotxt('data/*.txt')
-teste2 = letxt_aplicametrica(teste, 1000, 'lexical_diversity')
+teste2 = letxt_aplicametrica(teste, 1000, lexical_diversity)
 v = visualiza(teste2, 400, 600, u'Constituição brasileira de 1988 - Diversidade léxica')
